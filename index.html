@@ -269,18 +269,21 @@
     <section id="contact">
       <div class="container">
         <div class="section-title"><span>CONTACT</span><h2>お問い合わせ</h2></div>
-        <form class="contact-form" id="contactForm">
+        <form class="contact-form" id="contactForm" action="https://formspree.io/f/mjygnlak" method="POST">
+          <input type="hidden" name="_subject" value="【サンプル会社】ホームページからのお問い合わせ">
+          <!-- 迷惑メール対策（ハニーポット）：人には見えない欄。入力があれば Formspree が破棄します -->
+          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
           <div>
             <label for="name">お名前<span class="req">必須</span></label>
-            <input type="text" id="name" required placeholder="例）山田 花子">
+            <input type="text" id="name" name="name" required placeholder="例）山田 花子">
           </div>
           <div>
             <label for="email">メールアドレス<span class="req">必須</span></label>
-            <input type="email" id="email" required placeholder="例）hanako@example.com">
+            <input type="email" id="email" name="email" required placeholder="例）hanako@example.com">
           </div>
           <div>
             <label for="type">ご相談内容</label>
-            <select id="type">
+            <select id="type" name="type">
               <option>Web制作について</option>
               <option>アプリ開発について</option>
               <option>ITコンサルティングについて</option>
@@ -289,7 +292,7 @@
           </div>
           <div>
             <label for="message">メッセージ<span class="req">必須</span></label>
-            <textarea id="message" rows="5" required placeholder="ご自由にお書きください"></textarea>
+            <textarea id="message" name="message" rows="5" required placeholder="ご自由にお書きください"></textarea>
           </div>
           <button type="submit">送信する</button>
           <p class="form-message" id="formMessage" aria-live="polite"></p>
@@ -332,11 +335,30 @@
       menuBtn.textContent = '☰';
     }));
 
-    // お問い合わせフォーム（サンプルのため実際には送信しません）
-    document.getElementById('contactForm').addEventListener('submit', (e) => {
+    // お問い合わせフォーム（Formspree に送信し、結果をページ内に表示）
+    const form = document.getElementById('contactForm');
+    const formMessage = document.getElementById('formMessage');
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      document.getElementById('formMessage').textContent = 'お問い合わせありがとうございます。（サンプルのため実際には送信されません）';
-      e.target.reset();
+      const button = form.querySelector('button');
+      button.disabled = true;
+      button.textContent = '送信中…';
+      formMessage.textContent = '';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error();
+        formMessage.textContent = 'お問い合わせありがとうございます。担当者より折り返しご連絡いたします。';
+        form.reset();
+      } catch {
+        formMessage.textContent = '送信できませんでした。時間をおいて再度お試しください。';
+      } finally {
+        button.disabled = false;
+        button.textContent = '送信する';
+      }
     });
   </script>
 </body>
